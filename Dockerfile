@@ -13,6 +13,11 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # 最终阶段 - 使用最小的基础镜像
 FROM python:3.12-slim
 
+# 安装 Docker CLI（用于执行 docker 命令管理其他容器）
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends docker.io && \
+    rm -rf /var/lib/apt/lists/*
+
 # 设置工作目录
 WORKDIR /app
 
@@ -25,8 +30,9 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONPATH=/usr/local/lib/python3.12/site-packages
 
-# 创建非root用户以提高安全性
+# 创建非root用户以提高安全性，并将 docker 组权限给该用户
 RUN useradd -m -u 1000 v2raya_tools && \
+    usermod -aG docker v2raya_tools && \
     chown -R v2raya_tools:v2raya_tools /app
 
 # 复制应用代码（这一步会在docker-compose中通过volume映射覆盖）
