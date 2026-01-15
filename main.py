@@ -20,6 +20,8 @@ NODE_PROTOCOL_BLACKLIST = []
 '''节点协议黑名单，涉及到的节点不参与延迟测试'''
 NODE_DELAY_LIMIT = 0
 '''节点延迟上限，超过该值的节点不被选择'''
+OUTBOUND_NAMES = []
+'''指定要操作的出站名称列表，为空则操作所有出站'''
 CONFIG = {}
 V2RAYA_CONTAINER_NAME = "v2rayA"
 FORCED_RESET_PROXY = True
@@ -29,7 +31,7 @@ PROXY_HOST = ""
 V2RAYA_CONFIG = ""
 
 def load_config():
-    global CONFIG, V2RAYA_CONTAINER_NAME, FORCED_RESET_PROXY, HOST, APPLY_SUBSCRIPTION_IDS, NUMBER_OF_NODE_GROUP_MEMBERS, RANDOM_SELECTED_NODE, NODE_NAME_BLACKLIST, NODE_PROTOCOL_BLACKLIST, NODE_DELAY_LIMIT, PROXY_HOST, V2RAYA_CONFIG
+    global CONFIG, V2RAYA_CONTAINER_NAME, FORCED_RESET_PROXY, HOST, APPLY_SUBSCRIPTION_IDS, NUMBER_OF_NODE_GROUP_MEMBERS, RANDOM_SELECTED_NODE, NODE_NAME_BLACKLIST, NODE_PROTOCOL_BLACKLIST, NODE_DELAY_LIMIT, OUTBOUND_NAMES, PROXY_HOST, V2RAYA_CONFIG
     with open("config.json", "r", encoding='utf8') as f:CONFIG = json.load(f)
     HOST = f"http://{get_container_ip(CONFIG['v2raya_container_name'])}:{CONFIG['webui_port']}"
     FORCED_RESET_PROXY = CONFIG['forced_reset_proxy']
@@ -39,6 +41,7 @@ def load_config():
     NODE_NAME_BLACKLIST = CONFIG['node_name_blacklist']
     NODE_PROTOCOL_BLACKLIST = CONFIG['node_protocol_blacklist']
     NODE_DELAY_LIMIT = CONFIG['node_delay_limit']
+    OUTBOUND_NAMES = CONFIG.get('outbound_names', [])
     PROXY_HOST = get_container_ip(CONFIG['v2raya_container_name'])
     V2RAYA_CONFIG = CONFIG['v2raya_config']
 
@@ -102,10 +105,22 @@ def get_status():
     return response.json()
 
 def get_outbounds():
-    '''获取出站'''
+    '''获取出站，根据配置过滤'''
     url = f"{HOST}/api/outbounds"
     response = requests.get(url, headers={"Authorization": TOKEN})
-    return response.json()["data"]["outbounds"]
+    all_outbounds = response.json()["data"]["outbounds"]
+    
+    # 如果配置了指定的出站名称，则过滤；否则返回所有出站
+    if OUTBOUND_NAMES:
+        filtered_outbounds = [outbound for outbound in all_outbounds if outbound in OUTBOUND_NAMES]
+        if filtered_outbounds:
+            logging.info(f"已配置指定出站: {OUTBOUND_NAMES}, 实际找到: {filtered_outbounds}")
+        else:
+            logging.warning(f"警告: 配置的出站 {OUTBOUND_NAMES} 在系统中不存在，使用所有出站")
+            return all_outbounds
+        return filtered_outbounds
+    else:
+        return all_outbounds
 
 def disable_Proxy():
     return requests.delete(f"{HOST}/api/v2ray", headers={"Authorization": TOKEN}).json()["code"]

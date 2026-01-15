@@ -19,7 +19,8 @@
     "node_name_blacklist":[],
     "node_protocol_blacklist":[],
     "node_delay_limit": 1000,
-    "v2raya_config": "/home/v2raya/config.json"
+    "v2raya_config": "/home/v2raya/config.json",
+    "outbound_names": []
 }
 ```
 
@@ -57,6 +58,14 @@
 ---
 
 ## 更新日志
+
+### 0.3
+
+>2026年1月15日
+>
+>1. 新增 `outbound_names` 配置项，支持指定要操作的出站名称列表
+>2. 为空或不存在时操作所有出站（保持原有行为）
+>3. 添加 Docker 支持，包含 Dockerfile 和 docker-compose.yml
 
 ### 0.2
 
