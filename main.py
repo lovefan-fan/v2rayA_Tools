@@ -268,9 +268,14 @@ def reset_proxy():
         for connect in connectedServer:connect_cancel(connect)  # 则都取消
     if len(good_nodes) > 0:
         connect_on(good_nodes, outbounds)
-        logging.info(f"启动代理: {enable_Proxy()}")
+        enable_result = enable_Proxy()
+        logging.info(f"启动代理: {enable_result}")
         end_time = int(time.time())
         logging.info(f"{msg} 耗时 {end_time - start_time} 秒")
+        # 检查代理是否成功启动（0 表示成功）
+        if enable_result != 0:
+            logging.error("代理启动失败，终止重置")
+            return False
         return True
     else:
         logging.info("没有可用的节点")
