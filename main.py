@@ -263,9 +263,14 @@ def reset_proxy():
     else:
         msg = "启动代理"
         logging.info("当前代理停用状态")
+    # 只取消配置的出站上的节点连接
     connectedServer = status["data"]["touch"]["connectedServer"]    # 获取连接的服务器
     if connectedServer: # 如果有连接的节点
-        for connect in connectedServer:connect_cancel(connect)  # 则都取消
+        # 只清理配置的出站中的连接
+        for connect in connectedServer:
+            if connect.get("outbound") in outbounds:
+                connect_cancel(connect)
+                logging.info(f"取消出站 {connect.get('outbound')} 的节点连接")
     if len(good_nodes) > 0:
         connect_on(good_nodes, outbounds)
         enable_result = enable_Proxy()
