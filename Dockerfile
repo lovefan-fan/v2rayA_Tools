@@ -7,8 +7,8 @@ WORKDIR /app
 # 只复制依赖文件
 COPY requirements.txt .
 
-# 安装依赖
-RUN pip install --no-cache-dir --user -r requirements.txt
+# 安装依赖到系统目录（不使用 --user）
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # 最终阶段 - 使用最小的基础镜像
 FROM python:3.12-slim
@@ -17,20 +17,17 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # 从构建阶段复制已安装的依赖
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /install /usr/local
 
 # 设置环境变量
-ENV PATH=/root/.local/bin:$PATH \
-    PYTHONUNBUFFERED=1 \
+ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/usr/local/lib/python3.12/site-packages
 
 # 创建非root用户以提高安全性
 RUN useradd -m -u 1000 v2raya_tools && \
     chown -R v2raya_tools:v2raya_tools /app
-
-# 切换到非root用户
-USER v2raya_tools
 
 # 复制应用代码（这一步会在docker-compose中通过volume映射覆盖）
 COPY --chown=v2raya_tools:v2raya_tools *.py ./
