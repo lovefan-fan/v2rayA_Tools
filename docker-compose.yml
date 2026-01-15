@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  v2raya-tools:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: v2raya_tools
+    restart: unless-stopped
+    
+    # 映射代码目录，这样修改代码后不需要重新构建镜像
+    volumes:
+      # 映射当前目录的所有代码文件到容器
+      - .:/app
+      # 映射 Docker socket，以便容器可以管理其他容器（执行 docker inspect 等命令）
+      - /var/run/docker.sock:/var/run/docker.sock
+      # 映射 v2rayA 配置文件目录
+      # 请根据你的实际情况修改宿主机路径，例如：
+      # 如果 v2rayA 使用 -v /etc/v2raya:/etc/v2raya，则映射为：
+      # - /etc/v2raya:/etc/v2raya:ro
+      # 如果 v2rayA 使用 -v /home/v2raya:/etc/v2raya，则映射为：
+      # - /home/v2raya:/home/v2raya:ro
+      # 下面的示例路径需要根据你的实际配置修改
+      - /home/v2raya:/home/v2raya:ro
+    
+    # 网络模式：使用 host 网络模式可以访问宿主机网络
+    # 这样可以直接访问 v2rayA 的 WebUI 端口
+    # 如果 v2rayA 容器在自定义网络中，也可以使用 network_mode: service:v2raya
+    network_mode: host
+    
+    # 环境变量
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONUNBUFFERED=1
+    
+    # 默认命令，可以通过 docker-compose run 覆盖
+    # 例如: docker-compose run v2raya-tools python updateSub.py
+    command: python main.py
+    
+    # 如果需要定时运行，可以使用以下配置
+    # (需要启用 Docker socket 映射)
+    # 但由于这个工具是由事件驱动的（需要时手动运行），
+    # 所以不配置自动运行，改为手动触发
+
+# 如果需要与 v2rayA 容器在同一网络中，可以定义网络
+# networks:
+#   default:
+#     name: v2raya-network
+#     external: true

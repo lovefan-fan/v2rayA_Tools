@@ -1,0 +1,39 @@
+# Git 相关
+.git
+.gitignore
+.gitattributes
+
+# Python 相关
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+.pytest_cache
+.coverage
+htmlcov
+
+# IDE 相关
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 文档
+README.md
+*.md
+
+# Docker 相关
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 其他
+.DS_Store
+Thumbs.db

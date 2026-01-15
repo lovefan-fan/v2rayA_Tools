@@ -1,0 +1,2 @@
+# v2rayA_Tools Python依赖
+requests>=2.31.0
